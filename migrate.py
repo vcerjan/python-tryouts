@@ -1,4 +1,3 @@
-from ensurepip import bootstrap
 import psycopg2
 
 conn = None
