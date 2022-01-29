@@ -1,5 +1,14 @@
+from crypt import methods
 from flask import Flask, jsonify, request
 from random import randint
+import psycopg2
+
+conn = None
+
+try:
+  conn = psycopg2.connect("dbname='rolldb' user='flaskadmin' host='localhost' password='flaskadmin1'")
+except:
+  print("I am unable to connect to the database")
 
 app = Flask(__name__)
 
@@ -21,27 +30,34 @@ def handle_data(id):
   }
   return jsonify(data)
 
-@app.route('/roll', methods=['GET', 'POST'])
+@app.route('/roll', methods=['POST'])
 def handle_roll():
-  if request.method == 'POST':
-    data = request.get_json()
-    total = 0
-    rollResults = []
+  data = request.get_json()
+  total = 0
+  rollResults = []
 
-    diceSides = data['diceSides']
-    numberOfRolls = data['numberOfRolls']
+  diceSides = data['diceSides']
+  numberOfRolls = data['numberOfRolls']
 
-    for x in range(numberOfRolls):
-      roll = randint(1, diceSides)
-      rollResults.append(roll)
-      total += roll
+  for _ in range(numberOfRolls):
+    roll = randint(1, diceSides)
+    rollResults.append(roll)
+    total += roll
 
-    response = {
-      'query': str(numberOfRolls) + 'd' + str(diceSides),
-      'rollResults': rollResults,
-      'total': total
-    }
+  response = {
+    'query': str(numberOfRolls) + 'd' + str(diceSides),
+    'rollResults': rollResults,
+    'total': total
+  }
 
-    return jsonify(response)
-  if request.method == 'GET':
-    return '<p>Roll a dice (UI is WIP)</p>'
+  return jsonify(response)
+
+
+@app.route('/stuff', methods=['GET'])
+def handle_stuff():
+  cur = conn.cursor()
+  
+  cur.execute('select * from stuff;')
+  result = cur.fetchall()
+  
+  return jsonify(result)
